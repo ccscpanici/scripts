@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 
 set -e
@@ -6,59 +5,54 @@ set -e
 DOWNLOAD_PAGE="https://inductiveautomation.com/downloads/ignition"
 DOWNLOAD_DIR="$HOME"
 
-# Display interactive instructions directly on the terminal.
-cat >/dev/tty <<EOF
+echo
+echo "Ignition Installer / Upgrade"
+echo "============================"
+echo
+echo "Go to this web page and copy the Linux installer download link:"
+echo
+echo "$DOWNLOAD_PAGE"
+echo
 
-Ignition Installer / Upgrade
-============================
-
-Go to this web page and copy the Linux installer download link:
-
-$DOWNLOAD_PAGE
-
-EOF
-
-# Read the download URL directly from the terminal.
+# Read from the terminal instead of stdin because the script
+# may be executed using: curl ... | bash
 printf "Download Link: " >/dev/tty
 read -r httplink </dev/tty
 
 if [ -z "$httplink" ]; then
-    echo "ERROR: No download link entered." >/dev/tty
+    echo "ERROR: No download link entered."
     exit 1
 fi
 
-# Remove a query string, if present, and determine the filename.
+# Remove query parameters from URL when determining filename
 filename=$(basename "${httplink%%\?*}")
 
 if [ -z "$filename" ]; then
-    echo "ERROR: Could not determine installer filename." >/dev/tty
+    echo "ERROR: Could not determine installer filename."
     exit 1
 fi
 
 installer_path="$DOWNLOAD_DIR/$filename"
 
-cat >/dev/tty <<EOF
-
-Installer: $filename
-Download location: $installer_path
-
-Downloading from:
-$httplink
-
-EOF
+echo
+echo "Installer: $filename"
+echo "Download location: $installer_path"
+echo
+echo "Downloading from:"
+echo "$httplink"
+echo
 
 wget \
     --referer="$DOWNLOAD_PAGE" \
     -O "$installer_path" \
     "$httplink"
 
-echo >/dev/tty
-echo "Making installer executable..." >/dev/tty
+echo
+echo "Making installer executable..."
 chmod +x "$installer_path"
 
-echo >/dev/tty
-echo "Running Ignition installer..." >/dev/tty
-echo >/dev/tty
+echo
+echo "Running Ignition installer..."
+echo
 
 sudo "$installer_path"
-```
