@@ -1,22 +1,59 @@
+```bash
 #!/bin/bash
 
-# download the latest version of ignition
-echo -e "Go to this web page, and paste in the download link. \nhttps://inductiveautomation.com/downloads/ignition\n"
-echo -e "Download Link: "
-read httplink
-nlines=$(wc -l < $httplink)
+set -e
 
-filename=`echo "$httplink" | rev | cut -d'/' -f1 | rev`
-echo -e "filename: $filename \n"
+DOWNLOAD_PAGE="https://inductiveautomation.com/downloads/ignition"
+DOWNLOAD_DIR="$HOME"
 
-echo -e "Downloading from: $httplink \n"
+echo
+echo "Ignition Installer / Upgrade"
+echo "============================"
+echo
+echo "Go to this web page and copy the Linux installer download link:"
+echo "$DOWNLOAD_PAGE"
+echo
 
-####### Enable when ready
-wget --referer=https://inductiveautomation.com/downloads/ignition $httplink
+# Read directly from the terminal so this works with:
+# curl -fsSL <url> | bash
+read -r -p "Download Link: " httplink </dev/tty
 
-echo -e "Making file executable.\n"
-sudo chmod +x $filename
+# Make sure something was entered
+if [ -z "$httplink" ]; then
+    echo "ERROR: No download link entered."
+    exit 1
+fi
 
-echo -e "Running Installer.\n"
-./$filename
+# Strip query string, if present, and determine filename
+filename=$(basename "${httplink%%\?*}")
 
+if [ -z "$filename" ]; then
+    echo "ERROR: Could not determine installer filename."
+    exit 1
+fi
+
+installer_path="$DOWNLOAD_DIR/$filename"
+
+echo
+echo "Installer: $filename"
+echo "Download location: $installer_path"
+echo
+echo "Downloading from:"
+echo "$httplink"
+echo
+
+wget \
+    --referer="$DOWNLOAD_PAGE" \
+    -O "$installer_path" \
+    "$httplink"
+
+echo
+echo "Making installer executable..."
+chmod +x "$installer_path"
+
+echo
+echo "Running Ignition installer..."
+echo
+
+sudo "$installer_path"
+```
